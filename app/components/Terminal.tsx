@@ -43,6 +43,13 @@ interface Experience {
   logo?: string;
 }
 
+interface SystemMetrics {
+  cpu: number;
+  memory: number;
+  network: number;
+  processes: number;
+}
+
 const COMMANDS = ['help', 'about', 'skills', 'projects', 'resume', 'contact', 'clear', 'theme', 'particles'] as const;
 type CommandType = typeof COMMANDS[number];
 
@@ -128,6 +135,12 @@ export function Terminal() {
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [metrics, setMetrics] = useState<SystemMetrics>({
+    cpu: 15,
+    memory: 35,
+    network: 10,
+    processes: 2
+  });
 
   // Particle effect
   useEffect(() => {
@@ -203,6 +216,54 @@ export function Terminal() {
       window.removeEventListener('resize', resizeCanvas);
     };
   }, [showParticles]);
+
+  // Add new effect for random fluctuations
+  useEffect(() => {
+    // Random fluctuation interval
+    const fluctuationInterval = setInterval(() => {
+      setMetrics(prev => ({
+        cpu: Math.max(Math.min(prev.cpu + (Math.random() * 8), 95), 15),
+        memory: Math.max(Math.min(prev.memory + (Math.random() * 6), 90), 35),
+        network: Math.max(Math.min(prev.network + (Math.random() * 4), 85), 10),
+        processes: Math.max(Math.min(prev.processes + (Math.random() * 1), 20), 2)
+      }));
+    }, 2000);
+
+    return () => {
+      clearInterval(fluctuationInterval);
+    };
+  }, []);
+
+  // Update the interaction effect to be more dynamic
+  useEffect(() => {
+    const handleInteraction = () => {
+      setMetrics(prev => ({
+        cpu: Math.min(prev.cpu + Math.random() * 8 + 2, 95),
+        memory: Math.min(prev.memory + Math.random() * 5 + 1, 90),
+        network: Math.min(prev.network + Math.random() * 4 + 1, 85),
+        processes: Math.min(prev.processes + Math.random() * 2 + 0.5, 20)
+      }));
+    };
+
+    // Reset metrics with more randomness
+    const resetInterval = setInterval(() => {
+      setMetrics(prev => ({
+        cpu: Math.max(prev.cpu - Math.random() * 8, 15),
+        memory: Math.max(prev.memory - Math.random() * 6, 35),
+        network: Math.max(prev.network - Math.random() * 4, 10),
+        processes: Math.max(prev.processes - Math.random() * 3, 2)
+      }));
+    }, 1000);
+
+    window.addEventListener('keydown', handleInteraction);
+    window.addEventListener('click', handleInteraction);
+
+    return () => {
+      window.removeEventListener('keydown', handleInteraction);
+      window.removeEventListener('click', handleInteraction);
+      clearInterval(resetInterval);
+    };
+  }, []);
 
   const handleCommand = async (cmd: string) => {
     const command = cmd.toLowerCase().trim();
@@ -543,6 +604,67 @@ export function Terminal() {
           className="fixed inset-0 w-full h-full pointer-events-none z-0"
         />
       )}
+      {/* Floating Stats Panel */}
+      <div className="absolute top-4 right-4 z-20">
+        <Card className="bg-background/80 backdrop-blur-xl border-secondary/30 shadow-lg">
+          <CardContent className="p-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-xs text-foreground/80">CPU</span>
+                </div>
+                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 transition-all duration-300"
+                    style={{ width: `${metrics.cpu}%` }}
+                  />
+                </div>
+                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.cpu.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-xs text-foreground/80">MEM</span>
+                </div>
+                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-300"
+                    style={{ width: `${metrics.memory}%` }}
+                  />
+                </div>
+                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.memory.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs text-foreground/80">NET</span>
+                </div>
+                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all duration-300"
+                    style={{ width: `${metrics.network}%` }}
+                  />
+                </div>
+                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.network.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                  <span className="text-xs text-foreground/80">PROC</span>
+                </div>
+                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-500 transition-all duration-300"
+                    style={{ width: `${(metrics.processes / 20) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.processes.toFixed(0)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       <Card className="w-full max-w-4xl h-[80vh] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl relative z-10 animate-glow">
         <CardContent ref={terminalRef} className="h-full p-6 font-mono overflow-auto">
           <div className="space-y-6">
