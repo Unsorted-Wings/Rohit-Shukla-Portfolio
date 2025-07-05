@@ -6,8 +6,6 @@ import { useTheme } from 'next-themes';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -43,13 +41,6 @@ interface Experience {
   logo?: string;
 }
 
-interface SystemMetrics {
-  cpu: number;
-  memory: number;
-  network: number;
-  processes: number;
-}
-
 const COMMANDS = ['help', 'about', 'skills', 'projects', 'resume', 'contact', 'clear', 'theme', 'particles'] as const;
 type CommandType = typeof COMMANDS[number];
 
@@ -74,7 +65,6 @@ const SKILLS: Skill[] = [
   { name: 'PostgreSQL', category: 'Backend', icon: '🐘' },
   { name: 'Tailwind CSS', category: 'Frontend', icon: '🎨' },
   { name: 'Git', category: 'Tools', icon: '📦' },
-
 ];
 
 const PROJECTS: Project[] = [
@@ -92,7 +82,8 @@ const PROJECTS: Project[] = [
     description: "A web application for managing all the services of a college campus like chating, notes, assignments, etc.",
     image: "",
     technologies: ["Next.js", "TypeScript", "Shadcn", "Tailwind CSS", "Firebase", "Node.js", "Git"],
-    githubUrl: "https://github.com/yourusername/ecommerce-platform",
+    githubUrl: "https://github.com/Unsorted-Wings/Digital-Campus-Support",
+    liveUrl: "https://digital-campus-support.vercel.app",
     featured: true
   },
 ];
@@ -135,12 +126,6 @@ export function Terminal() {
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [metrics, setMetrics] = useState<SystemMetrics>({
-    cpu: 15,
-    memory: 35,
-    network: 10,
-    processes: 2
-  });
 
   // Particle effect
   useEffect(() => {
@@ -158,7 +143,7 @@ export function Terminal() {
     window.addEventListener('resize', resizeCanvas);
 
     const particles: Particle[] = [];
-    const particleCount = 100; // Increased particle count for background
+    const particleCount = 80;
 
     class Particle {
       x: number;
@@ -166,41 +151,80 @@ export function Terminal() {
       size: number;
       speedX: number;
       speedY: number;
-      color: string;
+      hue: number;
+      brightness: number;
+      alpha: number;
 
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 2; // Slightly smaller particles
-        this.speedX = Math.random() * 1 - 0.5; // Slower movement
-        this.speedY = Math.random() * 1 - 0.5;
-        this.color = `hsla(${Math.random() * 60 + 200}, 70%, 50%, 0.3)`; // More transparent
+        this.size = Math.random() * 3 + 1;
+        this.speedX = Math.random() * 1 - 0.3;
+        this.speedY = Math.random() * 1 - 0.3;
+        this.hue = Math.random() * 60 + 180;
+        this.brightness = 50 + Math.random() * 30;
+        this.alpha = 0.4 + Math.random() * 0.3;
       }
 
       update() {
+        this.speedX *= 1;
+        this.speedY *= 1;
+        const minSpeed = 0.1;
+        if (Math.abs(this.speedX) < minSpeed) {
+          this.speedX = Math.sign(this.speedX) * minSpeed || (Math.random() * 0.2 - 0.1);
+        }
+        if (Math.abs(this.speedY) < minSpeed) {
+          this.speedY = Math.sign(this.speedY) * minSpeed || (Math.random() * 0.2 - 0.1);
+        }
         this.x += this.speedX;
         this.y += this.speedY;
-
-        if (this.x > canvas.width) this.x = 0;
-        if (this.x < 0) this.x = canvas.width;
-        if (this.y > canvas.height) this.y = 0;
-        if (this.y < 0) this.y = canvas.height;
+        if (this.x > canvas.width || this.x < 0) {
+          this.speedX = -this.speedX * (0.7 + Math.random() * 0.3);
+          this.x = Math.max(0, Math.min(canvas.width, this.x));
+        }
+        if (this.y > canvas.height || this.y < 0) {
+          this.speedY = -this.speedY * (0.7 + Math.random() * 0.3);
+          this.y = Math.max(0, Math.min(canvas.height, this.y));
+        }
+        this.alpha = 0.4 + Math.sin(Date.now() * 0.002 + this.x) * 0.2;
       }
 
       draw() {
         if (!ctx) return;
-        ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${this.hue}, 80%, ${this.brightness}%, ${this.alpha})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = `hsla(${this.hue}, 80%, ${this.brightness}%, 0.5)`;
         ctx.fill();
       }
     }
 
-    // Create particles
     for (let i = 0; i < particleCount; i++) {
       particles.push(new Particle());
     }
 
+    const connectParticles = () => {
+      const maxDistance = 100;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < maxDistance) {
+            if (!ctx) return;
+            ctx.beginPath();
+            ctx.strokeStyle = `hsla(${particles[i].hue}, 80%, 50%, ${1 - distance / maxDistance})`;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    let animationFrameId: number;
     const animate = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -208,66 +232,21 @@ export function Terminal() {
         particle.update();
         particle.draw();
       });
-      requestAnimationFrame(animate);
+      connectParticles();
+      animationFrameId = requestAnimationFrame(animate);
     };
     animate();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
     };
   }, [showParticles]);
 
-  // Add new effect for random fluctuations
-  useEffect(() => {
-    // Random fluctuation interval
-    const fluctuationInterval = setInterval(() => {
-      setMetrics(prev => ({
-        cpu: Math.max(Math.min(prev.cpu + (Math.random() * 8), 95), 15),
-        memory: Math.max(Math.min(prev.memory + (Math.random() * 6), 90), 35),
-        network: Math.max(Math.min(prev.network + (Math.random() * 4), 85), 10),
-        processes: Math.max(Math.min(prev.processes + (Math.random() * 1), 20), 2)
-      }));
-    }, 2000);
-
-    return () => {
-      clearInterval(fluctuationInterval);
-    };
-  }, []);
-
-  // Update the interaction effect to be more dynamic
-  useEffect(() => {
-    const handleInteraction = () => {
-      setMetrics(prev => ({
-        cpu: Math.min(prev.cpu + Math.random() * 8 + 2, 95),
-        memory: Math.min(prev.memory + Math.random() * 5 + 1, 90),
-        network: Math.min(prev.network + Math.random() * 4 + 1, 85),
-        processes: Math.min(prev.processes + Math.random() * 2 + 0.5, 20)
-      }));
-    };
-
-    // Reset metrics with more randomness
-    const resetInterval = setInterval(() => {
-      setMetrics(prev => ({
-        cpu: Math.max(prev.cpu - Math.random() * 8, 15),
-        memory: Math.max(prev.memory - Math.random() * 6, 35),
-        network: Math.max(prev.network - Math.random() * 4, 10),
-        processes: Math.max(prev.processes - Math.random() * 3, 2)
-      }));
-    }, 1000);
-
-    window.addEventListener('keydown', handleInteraction);
-    window.addEventListener('click', handleInteraction);
-
-    return () => {
-      window.removeEventListener('keydown', handleInteraction);
-      window.removeEventListener('click', handleInteraction);
-      clearInterval(resetInterval);
-    };
-  }, []);
-
   const handleCommand = async (cmd: string) => {
     const command = cmd.toLowerCase().trim();
-    
+    console.log('Processing command:', command);
+
     if (command === 'clear') {
       setCommands([]);
       setInput('');
@@ -330,6 +309,7 @@ export function Terminal() {
             </h2>
             <Card className="bg-secondary/20">
               <CardContent className="p-6">
+                <h3 className="text-xl font-medium mb-2 text-primary">Rohit Shukla</h3>
                 <p className="text-lg mb-4 text-foreground">🚀 Full-stack developer passionate about creating beautiful and functional applications</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="bg-secondary/20">
@@ -451,17 +431,17 @@ export function Terminal() {
             <Card className="terminal-card-bg">
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  <a href="mailto:your.email@example.com" className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
+                  <div className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
                     <span className="text-2xl">📧</span>
-                    <span className="terminal-text">your.email@example.com</span>
-                  </a>
-                  <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
+                    <span className="terminal-text">shuklarohit2105@gmail.com</span>
+                  </div>
+                  <a href="https://github.com/unsorted-wings" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
                     <span className="text-2xl">🐙</span>
-                    <span className="terminal-text">github.com/yourusername</span>
+                    <span className="terminal-text">github.com/unsorted-wings</span>
                   </a>
-                  <a href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
+                  <a href="https://linkedin.com/in/rohit-shukla-a8729124b" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg transition-colors terminal-card-bg terminal-hover">
                     <span className="text-2xl">💼</span>
-                    <span className="terminal-text">linkedin.com/in/yourusername</span>
+                    <span className="terminal-text">linkedin.com/in/rohit-shukla-a8729124b</span>
                   </a>
                 </div>
               </CardContent>
@@ -545,6 +525,7 @@ export function Terminal() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    console.log('Key down:', e.key, 'Input value:', input);
     if (e.key === 'Enter') {
       handleCommand(input);
     } else if (e.key === 'ArrowUp') {
@@ -578,6 +559,7 @@ export function Terminal() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInput(value);
+    console.log('Input changed:', value);
     
     const currentInput = value.toLowerCase();
     const suggestion = SUGGESTIONS[currentInput];
@@ -586,9 +568,10 @@ export function Terminal() {
 
   useEffect(() => {
     if (inputRef.current) {
+      console.log('Focusing input');
       inputRef.current.focus();
     }
-  }, []);
+  }, [commands]);
 
   useEffect(() => {
     if (terminalRef.current) {
@@ -604,67 +587,6 @@ export function Terminal() {
           className="fixed inset-0 w-full h-full pointer-events-none z-0"
         />
       )}
-      {/* Floating Stats Panel */}
-      <div className="absolute top-4 right-4 z-20">
-        <Card className="bg-background/80 backdrop-blur-xl border-secondary/30 shadow-lg">
-          <CardContent className="p-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-xs text-foreground/80">CPU</span>
-                </div>
-                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-red-500 transition-all duration-300"
-                    style={{ width: `${metrics.cpu}%` }}
-                  />
-                </div>
-                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.cpu.toFixed(1)}%</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-xs text-foreground/80">MEM</span>
-                </div>
-                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 transition-all duration-300"
-                    style={{ width: `${metrics.memory}%` }}
-                  />
-                </div>
-                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.memory.toFixed(1)}%</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs text-foreground/80">NET</span>
-                </div>
-                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-green-500 transition-all duration-300"
-                    style={{ width: `${metrics.network}%` }}
-                  />
-                </div>
-                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.network.toFixed(1)}%</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                  <span className="text-xs text-foreground/80">PROC</span>
-                </div>
-                <div className="w-24 h-1.5 bg-secondary/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-yellow-500 transition-all duration-300"
-                    style={{ width: `${(metrics.processes / 20) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-foreground/80 w-12 text-right">{metrics.processes.toFixed(0)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
       <Card className="w-full max-w-4xl h-[80vh] rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl relative z-10 animate-glow">
         <CardContent ref={terminalRef} className="h-full p-6 font-mono overflow-auto">
           <div className="space-y-6">
@@ -704,7 +626,6 @@ export function Terminal() {
   );
 }
 
-// Helper function to get command descriptions
 const getCommandDescription = (cmd: CommandType): string => {
   const descriptions: Record<CommandType, string> = {
     help: 'Show available commands',
@@ -712,10 +633,10 @@ const getCommandDescription = (cmd: CommandType): string => {
     skills: 'View my technical skills',
     projects: 'See my featured projects',
     resume: 'View my professional experience',
-    contact: 'Get my contact information',
+    contact: 'View my contact information',
     clear: 'Clear the terminal',
     theme: 'Toggle theme (dark/light)',
     particles: 'Toggle particle effect',
   };
   return descriptions[cmd];
-}; 
+};
