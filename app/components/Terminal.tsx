@@ -461,38 +461,6 @@ export function Terminal() {
       case 'resume':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Professional Experience
-            </h2>
-            <div className="space-y-6">
-              {EXPERIENCE.map((exp, index) => (
-                <Card key={index} className="terminal-card-bg">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="text-3xl">{exp.logo}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xl font-medium terminal-accent">{exp.position}</h3>
-                          <span className="text-sm text-primary">{exp.period}</span>
-                        </div>
-                        <h4 className="text-lg mb-3 text-foreground/90">{exp.company}</h4>
-                        <p className="text-foreground/80 mb-4">{exp.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {exp.technologies.map((tech) => (
-                            <span 
-                              key={tech}
-                              className="px-3 py-1 rounded-full text-sm bg-secondary/20 text-primary"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
             <Card className="terminal-card-bg">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -500,7 +468,7 @@ export function Terminal() {
                     💡 Download my full resume for more details
                   </p>
                   <a 
-                    href="/resume.pdf"
+                    href="/assets/Resume.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors"
