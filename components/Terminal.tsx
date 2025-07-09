@@ -41,7 +41,7 @@ interface Experience {
   logo?: string;
 }
 
-const COMMANDS = ['help', 'about', 'skills', 'projects', 'resume', 'contact', 'clear', 'theme', 'particles'] as const;
+const COMMANDS = ['help', 'about', 'skills', 'projects', 'resume', 'contact', 'clear', 'particles'] as const;
 type CommandType = typeof COMMANDS[number];
 
 const SUGGESTIONS: Record<string, CommandType> = {
@@ -51,7 +51,7 @@ const SUGGESTIONS: Record<string, CommandType> = {
   'res': 'resume',
   'con': 'contact',
   'cl': 'clear',
-  'th': 'theme',
+  // 'th': 'theme',
   'par': 'particles'
 };
 
@@ -448,16 +448,16 @@ export function Terminal() {
             </Card>
           </div>
         );
-      case 'theme':
-        const nextTheme = theme === 'dark' ? 'light' : 'dark';
-        setTheme(nextTheme);
-        return (
-          <Card className="terminal-card-bg">
-            <CardContent className="p-3">
-              <p className="terminal-text">Theme switched to <span className="terminal-accent">{nextTheme}</span></p>
-            </CardContent>
-          </Card>
-        );
+      // case 'theme':
+        // const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        // setTheme(nextTheme);
+        // return (
+        //   <Card className="terminal-card-bg">
+        //     <CardContent className="p-3">
+        //       <p className="terminal-text">Theme switched to <span className="terminal-accent">{nextTheme}</span></p>
+        //     </CardContent>
+        //   </Card>
+        // );
       case 'resume':
         return (
           <div className="space-y-6">
@@ -603,7 +603,7 @@ const getCommandDescription = (cmd: CommandType): string => {
     resume: 'View my professional experience',
     contact: 'View my contact information',
     clear: 'Clear the terminal',
-    theme: 'Toggle theme (dark/light)',
+    // theme: 'Toggle theme (dark/light)',
     particles: 'Toggle particle effect',
   };
   return descriptions[cmd];
